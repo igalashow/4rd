@@ -6,7 +6,7 @@ import os
 import selenium.common.exceptions
 import auth
 
-class Gosuslugi_parser:
+class Gosuslugi:
     """ """
 
     def __init__(self):
@@ -14,21 +14,22 @@ class Gosuslugi_parser:
 
 
     def get_data(self, url):
-        """ Получает данные с Госуслуг"""
-        driver = webdriver.Chrome()
-        driver.get(url)
-        timeout = 5
-        login = driver.find_element(By.ID, "login")
-        passd = driver.find_element(By.ID, "password")
-        enter = driver.find_element(By.ID, "loginByPwdButton")
-
-        login.send_keys(auth.login)
-        passd.send_keys(auth.passw)
-        enter.click()
-
-        cookies = driver.get_cookies()
-        source = driver.page_source
+        """ Получает паспортные данные с Госуслуг"""
         try:
+
+            driver = webdriver.Chrome()
+            driver.set_page_load_timeout(5)
+            driver.get(url)
+            login = driver.find_element(By.ID, "login")
+            passd = driver.find_element(By.ID, "password")
+            enter = driver.find_element(By.ID, "loginByPwdButton")
+
+            login.send_keys(auth.login)
+            passd.send_keys(auth.passw)
+            enter.click()
+
+            cookies = driver.get_cookies()
+            source = driver.page_source
             full_name = driver.find_element_by_xpath(
                 "/html/body/my-app/div/div[1]/my-person/div/div/div[2]/my-common-information/div/div/div[2]/div[2]")
             text_full_name = full_name.text
@@ -37,6 +38,13 @@ class Gosuslugi_parser:
             text_passport_data = passport_data.text
         except selenium.common.exceptions.NoSuchElementException as n:
             print('Паспортные данные отсутствуют', n)
+            quit()
+        except selenium.common.exceptions.TimeoutException as n:
+            print('Таймаут подключения', n)
+            quit()
+        except Exception:
+            print('Что-то пошло не так. Выход.')
+            quit()
         driver.quit()
         return text_full_name, text_passport_data
 
@@ -57,8 +65,8 @@ class Gosuslugi_parser:
 
 
 
-gp = Gosuslugi_parser()
-data = gp.get_data(url="https://esia.gosuslugi.ru")
-gp.save_file(folder=data[0].strip(), text=data[1])
+g = Gosuslugi()
+data = g.get_data(url="https://esia.gosuslugi.ru")
+g.save_file(folder=data[0].strip(), text=data[1])
 
 
