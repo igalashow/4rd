@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-import requests
 import os
 import selenium.common.exceptions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,16 +15,20 @@ class Gosuslugi:
         pass
 
 
-    def get_spravka(self, url):
-        pass
-
     def login_to_gosuslugi(self, url, log_in, passw):
         """ Логин в портал Госуслуг """
         try:
+            #### для запуска браузера "без головы" (Линукс, под Win7HB не работает)
+            # op = webdriver.ChromeOptions()
+            # op.add_argument('--disable-gpu')
+            # op.add_argument('--disable-extensions')
+            # op.add_argument('--headless')
+            # driver = webdriver.Chrome(options=op)
+
             driver = webdriver.Chrome()
             driver.get(url)
             element_present = EC.presence_of_element_located((By.ID, 'login'))
-            WebDriverWait(driver, timeout=10).until(element_present)
+            WebDriverWait(driver, timeout=15).until(element_present)
 
             login = driver.find_element(By.ID, "login")
             passd = driver.find_element(By.ID, "password")
@@ -52,8 +55,6 @@ class Gosuslugi:
                 '/html/body/my-app/div/div[1]/my-person/div/div/div[2]/my-common-information/div/div/div[2]/div[2]'))
             WebDriverWait(driver, timeout=10).until(element_present)
 
-            cookies = driver.get_cookies()
-            source = driver.page_source
             full_name = driver.find_element_by_xpath(
                 "/html/body/my-app/div/div[1]/my-person/div/div/div[2]/my-common-information/div/div/div[2]/div[2]")
             text_full_name = full_name.text
