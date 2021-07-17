@@ -70,7 +70,7 @@ class Gosuslugi:
         except Exception:
             print('Что-то пошло не так. Выход.')
             quit()
-        # driver.quit()
+        driver.quit()
         return text_full_name, text_passport_data
 
 
