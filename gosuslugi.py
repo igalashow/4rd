@@ -4,7 +4,10 @@ from selenium.webdriver.chrome.options import Options
 import requests
 import os
 import selenium.common.exceptions
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import auth
+
 
 class Gosuslugi:
     """ """
@@ -13,20 +16,41 @@ class Gosuslugi:
         pass
 
 
-    def get_data(self, url):
-        """ Получает паспортные данные с Госуслуг"""
-        try:
+    def get_spravka(self, url):
+        pass
 
+    def login_to_gosuslugi(self, url, log_in, passw):
+        """ Логин в портал Госуслуг """
+        try:
             driver = webdriver.Chrome()
-            driver.set_page_load_timeout(5)
             driver.get(url)
+            element_present = EC.presence_of_element_located((By.ID, 'login'))
+            WebDriverWait(driver, timeout=10).until(element_present)
+
             login = driver.find_element(By.ID, "login")
             passd = driver.find_element(By.ID, "password")
             enter = driver.find_element(By.ID, "loginByPwdButton")
 
-            login.send_keys(auth.login)
-            passd.send_keys(auth.passw)
+            login.send_keys(log_in)
+            passd.send_keys(passw)
             enter.click()
+
+
+        except selenium.common.exceptions.TimeoutException as n:
+            print('Таймаут подключения', n)
+            quit()
+        except Exception as e:
+            print('Что-то пошло не так. Выход.', e)
+            quit()
+        return driver
+
+
+    def get_data(self, driver):
+        """ Получает паспортные данные с Госуслуг"""
+        try:
+            element_present = EC.presence_of_element_located((By.XPATH,
+                '/html/body/my-app/div/div[1]/my-person/div/div/div[2]/my-common-information/div/div/div[2]/div[2]'))
+            WebDriverWait(driver, timeout=10).until(element_present)
 
             cookies = driver.get_cookies()
             source = driver.page_source
@@ -45,7 +69,7 @@ class Gosuslugi:
         except Exception:
             print('Что-то пошло не так. Выход.')
             quit()
-        driver.quit()
+        # driver.quit()
         return text_full_name, text_passport_data
 
 
@@ -66,7 +90,7 @@ class Gosuslugi:
 
 
 g = Gosuslugi()
-data = g.get_data(url="https://esia.gosuslugi.ru")
+data = g.get_data(g.login_to_gosuslugi(url="https://esia.gosuslugi.ru", log_in=auth.login, passw=auth.passw))
 g.save_file(folder=data[0].strip(), text=data[1])
 
 
